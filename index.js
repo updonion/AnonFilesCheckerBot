@@ -4,10 +4,24 @@ require('dotenv').config();
 const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
 const token = process.env.TG_BOT_TOKEN;
-
 const bot = new TelegramBot(token, { polling: true });
 
-validURL('anonfiles.com/RbO4rdT2me/Spotify_Premium_Accounts_Total_32K_txt')
+MY_LIST = 'anonfiles.com/RbO4rdT2me/Spotify_Premium_Accounts_Total_32K_txt     \n         https://anonfiles.com/vbD1rfs1u8/14k_txt     \n       https://anonfiles.com/30Wbkf3epd/RU_WOT_txt\n https://anonfiles.com/p6j46eAfp2/de_txt'
+
+rs = /[\ ]+/g // replace space
+
+linksToArray(MY_LIST)
+
+function linksToArray(list){
+    console.log(list);
+    listWithoutSpaces = list.replace(rs, '');
+    arrList = listWithoutSpaces.split(`\n`); 
+    for (i in arrList) {
+        console.log(`${i}. ${arrList[i]}`)
+        validURL(arrList[i])
+    }
+}
+
 
 // bot.on('message', (msg) => {
 //     console.log(msg.text);
@@ -45,7 +59,7 @@ function fileCheck(id) {
         .then(res => res.json())
         .then(response => { 
             let res = response.data.file
-            console.log(`FIle Size (bytes): ${res.metadata.size.bytes}\nFile Size: ${res.metadata.size.readable}\nFile ID: ${res.metadata.id}`)
+            console.log(`File name: ${res.metadata.name}\nFIle Size (bytes): ${res.metadata.size.bytes}\nFile Size: ${res.metadata.size.readable}\nFile ID: ${res.metadata.id}\n*******************\n\n`)
         
         });
 }
