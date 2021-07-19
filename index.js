@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
 const token = process.env.TG_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
+const cheerio = require('cheerio');
 
 MY_LIST = 'anonfiles.com/RbO4rdT2me/Spotify_Premium_Accounts_Total_32K_txt     \n         https://anonfiles.com/vbD1rfs1u8/14k_txt     \n       https://anonfiles.com/30Wbkf3epd/RU_WOT_txt\n https://anonfiles.com/p6j46eAfp2/de_txt'
 
@@ -60,6 +61,29 @@ function fileCheck(id) {
         .then(response => { 
             let res = response.data.file
             console.log(`File name: ${res.metadata.name}\nFIle Size (bytes): ${res.metadata.size.bytes}\nFile Size: ${res.metadata.size.readable}\nFile ID: ${res.metadata.id}\n*******************\n\n`)
-        
+            getDownloadLink(res.metadata.id)
         });
+        
+}
+
+
+function getDownloadLink(fileID) {
+    fetch(`https://anonfiles.com/${fileID}/`).then(function (response) {
+        // The API call was successful!
+        return response.text();
+    }).then(function (htmlPageWithDownloadLink) {
+        // console.log(htmlPageWithDownloadLink);
+        let $ = cheerio.load(htmlPageWithDownloadLink)
+        // Convert the HTML string into a document object
+        // var parser = new DOMParser();
+        // var doc = parser.parseFromString(html, 'text/html');
+        // var downloadLink = doc.querySelector('#download-url');
+        let downloadLink = $('#download-url').attr('href');
+	    console.log(downloadLink);
+    
+    }).catch(function (err) {
+        // There was an error
+        console.warn('Something went wrong.', err);
+    });
+    
 }
