@@ -4,7 +4,7 @@ require('dotenv').config();
 const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
 const token = process.env.TG_BOT_TOKEN;
-const http = require('https'); // or 'https' for https:// URLs
+const http = require('https');
 const fs = require('fs');
 const bot = new TelegramBot(token, {
     polling: {
@@ -94,15 +94,45 @@ function getDownloadLink(jsonAPIresponse, msg) {
         return response.text();
     }).then(function (htmlPageWithDownloadLink) {
 
+
         let $ = cheerio.load(htmlPageWithDownloadLink)
         let downloadLink = $('#download-url').attr('href');
         let filename = path.basename(downloadLink)
-        bot.sendMessage(msg.from.id, downloadLink.replace(filename, ""), {// `[${filename}](${downloadLink.replace(filename, "")}) (${jsonAPIresponse.metadata.size.readable})`, {
-            parse_mode: 'Markdown'
-        });
+
+
+        if (jsonAPIresponse.metadata.size.bytes <= 50000000 && filename.indexOf(".txt" >= 0)) {
+            downloadFile(filename, downloadLink.replace(filename, ""), msg, jsonAPIresponse.metadata.id)
+            bot.sendMessage(msg.from.id, downloadLink.replace(filename, ""), {// `[${filename}](${downloadLink.replace(filename, "")}) (${jsonAPIresponse.metadata.size.readable})`, {
+                parse_mode: 'Markdown'
+            });
+        } else {
+            bot.sendMessage(msg.from.id, downloadLink.replace(filename, ""), {// `[${filename}](${downloadLink.replace(filename, "")}) (${jsonAPIresponse.metadata.size.readable})`, {
+                parse_mode: 'Markdown'
+            });
+        }
+
 
     }).catch(function (err) {
         // There was an error
         console.warn('Something went wrong.', err);
     });
+}
+
+
+function downloadFile(filename, downloadLink, msg, fileID) {
+
+    let nameOfFile = `./Downloads/[${fileID}]-${filename}`
+    let file = fs.createWriteStream(nameOfFile);
+    const request = http.get(`${downloadLink}`, function (response) {
+        response.pipe(file);
+    });
+    // let fileUpload = fs.createWriteStream(filename);
+    let fileOptions = {
+        // Explicitly specify the file name.
+        filename: 'filename',
+        // Explicitly specify the MIME type.
+        contentType: 'application/pdf',
+      };
+      
+    bot.sendDocument(msg.chat.id, `${nameOfFile}`);
 }
